@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>ХРОМ.ДРУК // калькулятор вартості 3D-друку</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{--bg:#05070b;--cyan:#00fff2;--magenta:#ff2ea6;--green:#39ff88;--text:#d7e2ea;--muted:#8393a2;--border:rgba(0,255,242,.22);--pw:150px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(80px + env(safe-area-inset-top,0px))}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Share Tech Mono',ui-monospace,monospace;min-height:100vh;overflow-x:hidden}
+.side{position:fixed;top:0;bottom:0;width:var(--pw);z-index:0;background:#000}
+.side svg{width:100%;height:100%;display:block}
+.sl{left:0;border-right:1px solid var(--border)}
+.sr{right:0;border-left:1px solid var(--border);transform:scaleX(-1)}
+.led{animation:blink 3.2s ease-in-out infinite}.d2{animation-delay:.6s}.d3{animation-delay:1.3s}.d4{animation-delay:2s}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:60;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.025) 0 1px,transparent 2px 4px);mix-blend-mode:overlay}
+.page{position:relative;z-index:1;margin:0 var(--pw)}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--border);position:sticky;top:env(safe-area-inset-top,0px);background:rgba(5,7,11,.88);backdrop-filter:blur(6px);z-index:10}
+.logo{font-family:Orbitron,sans-serif;font-weight:900;letter-spacing:2px;color:var(--cyan);font-size:1.1rem;text-shadow:0 0 8px rgba(0,255,242,.6)}
+.logo span{color:var(--magenta);text-shadow:0 0 8px rgba(255,46,166,.6)}
+nav{display:flex;gap:26px}
+nav a{color:var(--muted);text-decoration:none;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;transition:color .2s}
+nav a:hover,nav a:focus-visible{color:var(--cyan);text-shadow:0 0 6px rgba(0,255,242,.7)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.hero{padding:90px 40px 60px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px}
+.eyebrow{font-size:.75rem;letter-spacing:4px;color:var(--green);text-shadow:0 0 6px rgba(57,255,136,.6)}
+.glitch{font-family:Orbitron,sans-serif;font-weight:900;font-size:clamp(2.1rem,6.5vw,4.4rem);line-height:1.05;margin:0;position:relative;letter-spacing:2px}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;overflow:hidden;opacity:.7}
+.glitch::before{color:var(--cyan);animation:gt 4.5s infinite linear;clip-path:inset(0 0 55% 0)}
+.glitch::after{color:var(--magenta);animation:gb 5.5s infinite linear;clip-path:inset(55% 0 0 0)}
+@keyframes gt{0%,88%,100%{transform:none}90%{transform:translate(-3px,-1px)}92%{transform:translate(3px,1px)}94%{transform:translate(-2px,0)}}
+@keyframes gb{0%,90%,100%{transform:none}92%{transform:translate(3px,1px)}94%{transform:translate(-3px,-1px)}96%{transform:translate(2px,0)}}
+.hero p{max-width:580px;color:var(--muted);font-size:.95rem;line-height:1.6;margin:0}
+.calc{padding:20px 40px 80px;max-width:780px;margin:0 auto}
+.panel{border:1px solid var(--border);background:rgba(0,255,242,.03);padding:34px 30px;position:relative}
+.panel::before{content:"МОДУЛЬ РОЗРАХУНКУ";position:absolute;top:-11px;left:24px;background:var(--bg);padding:0 10px;font-size:.68rem;letter-spacing:3px;color:var(--cyan)}
+.field{margin-bottom:20px}
+.field>label,.lab{display:block;font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+select,input[type=number]{width:100%;background:#000;border:1px solid var(--border);color:var(--cyan);font-family:inherit;font-size:1rem;padding:12px 14px;outline:none;border-radius:0;transition:border-color .2s,box-shadow .2s}
+select:focus,input[type=number]:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,255,242,.3)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.hint{font-size:.7rem;color:var(--muted);margin-top:6px}
+.seg{display:flex;border:1px solid var(--border)}
+.seg label{flex:1;text-align:center;padding:10px;cursor:pointer;font-size:.8rem;letter-spacing:1px;color:var(--muted);transition:all .2s;user-select:none}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked+span{color:#000}
+.seg label:has(input:checked){background:var(--cyan);color:#000}
+.seg label:has(input:disabled){opacity:.35;cursor:not-allowed}
+.seg label:has(input:focus-visible){outline:2px solid var(--magenta);outline-offset:-2px}
+.tg{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:.85rem;user-select:none;margin-bottom:8px}
+.tg input{position:absolute;opacity:0}
+.sw{position:relative;width:42px;height:22px;flex-shrink:0;border:1px solid var(--border);background:#000;transition:.2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--muted);transition:transform .25s,background .25s}
+.tg input:checked+.sw{border-color:var(--green);box-shadow:0 0 10px rgba(57,255,136,.4)}
+.tg input:checked+.sw::after{transform:translateX(20px);background:var(--green)}
+.tg input:focus-visible+.sw{outline:2px solid var(--cyan);outline-offset:2px}
+.elec{display:none;margin-bottom:6px}.elec.open{display:block}
+.res{margin-top:26px;border-top:1px dashed var(--border);padding-top:22px}
+.ln{display:flex;justify-content:space-between;gap:12px;font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.ln b{color:var(--text);font-weight:400}
+.ln.off{display:none}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-family:Orbitron,sans-serif;font-size:1.1rem;color:var(--green);text-shadow:0 0 10px rgba(57,255,136,.5)}
+.total span:last-child{font-size:1.8rem;text-align:right}
+.empty{color:var(--muted);font-size:.85rem;text-align:center;padding:6px 0}
+.btns{display:flex;gap:12px;margin-top:20px}
+.btn{flex:1;padding:13px;background:transparent;border:1px solid var(--magenta);color:var(--magenta);font-family:inherit;letter-spacing:2px;text-transform:uppercase;font-size:.8rem;cursor:pointer;transition:all .25s}
+.btn:hover{background:var(--magenta);color:#000;box-shadow:0 0 22px rgba(255,46,166,.6)}
+.btn.alt{border-color:var(--border);color:var(--muted)}.btn.alt:hover{background:var(--cyan);color:#000;border-color:var(--cyan);box-shadow:0 0 20px rgba(0,255,242,.4)}
+.mats{padding:20px 40px 90px}
+.st{font-family:Orbitron,sans-serif;font-weight:700;letter-spacing:2px;text-align:center;font-size:1.25rem;margin:0 0 8px}
+.ss{text-align:center;color:var(--muted);font-size:.82rem;margin:0 0 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px;max-width:1000px;margin:0 auto}
+.card{border:1px solid var(--border);padding:22px 20px;background:linear-gradient(180deg,rgba(0,255,242,.04),transparent);transition:transform .25s,box-shadow .25s;cursor:pointer;text-align:left;color:inherit;font-family:inherit}
+.card:hover,.card:focus-visible{transform:translateY(-4px);box-shadow:0 0 22px rgba(0,255,242,.18);border-color:var(--cyan)}
+.card .tag{font-size:.65rem;letter-spacing:2px;color:var(--magenta)}
+.card h3{font-family:Orbitron,sans-serif;font-size:.95rem;margin:10px 0;letter-spacing:1px}
+.card p{color:var(--muted);font-size:.8rem;line-height:1.6;margin:0 0 12px}
+.card .meta{font-size:.72rem;color:var(--green)}
+footer{border-top:1px solid var(--border);padding:20px 40px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;font-size:.72rem;color:var(--muted);letter-spacing:1px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);margin-right:6px;animation:blink 2s infinite}
+@media(max-width:1100px){:root{--pw:80px}}
+@media(max-width:700px){:root{--pw:0px}.side{display:none}header,.hero,.calc,.mats,footer{padding-left:20px;padding-right:20px}.row2{grid-template-columns:1fr;gap:0}.panel{padding:30px 20px}.hero{padding-top:60px}nav{gap:16px}.btns{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="side sl" aria-hidden="true">
+<svg xmlns="http://www.w3.org/2000/svg"><defs>
+<filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<pattern id="ck" width="150" height="280" patternUnits="userSpaceOnUse"><rect width="150" height="280" fill="#000"/>
+<g stroke="#00fff2" stroke-width="1.4" fill="none" opacity=".5" filter="url(#gl)"><path d="M22,0 L22,58 L75,58 L75,150"/><path d="M118,0 L118,42 L95,42 L95,118 L128,118 L128,280"/><path d="M42,150 L42,205 L14,205 L14,280"/><path d="M0,95 L34,95"/><path d="M105,190 L150,190"/><path d="M60,230 L60,280"/></g>
+<g fill="#ff2ea6" filter="url(#gl)"><circle class="led" cx="75" cy="58" r="4"/><circle class="led d3" cx="42" cy="150" r="3.6"/></g>
+<g fill="#39ff88" filter="url(#gl)"><circle class="led d2" cx="95" cy="118" r="3.4"/><circle class="led d4" cx="14" cy="205" r="3"/><circle class="led d2" cx="60" cy="230" r="3"/></g></pattern></defs>
+<rect width="100%" height="100%" fill="url(#ck)"/></svg></div>
+<div class="side sr" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="url(#ck)"/></svg></div>
+<div class="scan" aria-hidden="true"></div>
+
+<div class="page">
+<header>
+<div class="logo">ХРОМ<span>.ДРУК</span></div>
+<nav><a href="#calc">Розрахунок</a><a href="#materials">Матеріали</a></nav>
+</header>
+<main>
+<section class="hero">
+<div class="eyebrow">ВУЗОЛ 7 // МОДУЛЬ АДИТИВНОГО ВИРОБНИЦТВА</div>
+<h1 class="glitch" data-text="ХРОМ.ДРУК">ХРОМ.ДРУК</h1>
+<p>Обери пластик, вкажи довжину нитки або вагу виробу — модуль одразу покаже собівартість, брак, світло й націнку.</p>
+</section>
+
+<section class="calc" id="calc">
+<div class="panel">
+<div class="field">
+<label for="material">Тип пластика</label>
+<select id="material">
+<option value="PLA" data-p="700" data-g="2.98">PLA — базовий, простий у друці</option>
+<option value="ABS" data-p="750" data-g="2.50">ABS — міцний, термостійкий</option>
+<option value="PETG" data-p="850" data-g="3.06">PETG — стійкий до вологи й ударів</option>
+<option value="TPU" data-p="1200" data-g="2.91">TPU — гнучкий, еластичний</option>
+<option value="Nylon" data-p="1600" data-g="2.74">Nylon — інженерний, зносостійкий</option>
+<option value="Resin" data-p="1500" data-g="0" data-gonly="1">Resin — фотополімер (лише в грамах)</option>
+</select>
+</div>
+
+<div class="field">
+<span class="lab" id="modeLab">Що ти знаєш про виріб?</span>
+<div class="seg" role="radiogroup" aria-labelledby="modeLab">
+<label><input type="radio" name="mode" value="m" checked><span>Довжина нитки, м</span></label>
+<label><input type="radio" name="mode" value="g"><span>Вага, г</span></label>
+</div>
+<div class="hint" id="modeHint">вага рахується для нитки Ø1.75 мм (слайсер показує обидва значення)</div>
+</div>
+
+<div class="row2">
+<div class="field">
+<label for="amount" id="amountLab">Довжина нитки (м)</label>
+<input type="number" id="amount" placeholder="напр. 15" min="0" step="0.01" inputmode="decimal">
+</div>
+<div class="field">
+<label for="price">Ціна за 1 кг (₴)</label>
+<input type="number" id="price" min="0" step="1" inputmode="decimal">
+<div class="hint">підставляється автоматично, можна змінити</div>
+</div>
+</div>
+
+<div class="row2">
+<div class="field">
+<label for="waste">Брак і підтримки (%)</label>
+<input type="number" id="waste" value="10" min="0" max="300" step="1" inputmode="decimal">
+</div>
+<div class="field">
+<label for="markup">Націнка (%)</label>
+<input type="number" id="markup" value="0" min="0" max="1000" step="1" inputmode="decimal">
+</div>
+</div>
+
+<label class="tg"><input type="checkbox" id="elecToggle"><span class="sw"></span><span>Врахувати електроенергію</span></label>
+<div class="elec" id="elec">
+<div class="row2" style="margin-top:14px">
+<div class="field"><label for="power">Потужність принтера (Вт)</label><input type="number" id="power" value="150" min="0" step="1" inputmode="decimal"></div>
+<div class="field"><label for="hours">Час друку (год)</label><input type="number" id="hours" placeholder="напр. 4.5" min="0" step="0.1" inputmode="decimal"></div>
+</div>
+<div class="field"><label for="tariff">Тариф за 1 кВт·год (₴)</label><input type="number" id="tariff" value="4.32" min="0" step="0.01" inputmode="decimal"></div>
+</div>
+
+<div class="res" aria-live="polite">
+<div class="empty" id="empty">Введи довжину або вагу — розрахунок з'явиться тут</div>
+<div id="out" hidden>
+<div class="ln"><span>Матеріал</span><b id="rMat">—</b></div>
+<div class="ln"><span>Вага виробу</span><b id="rG">—</b></div>
+<div class="ln"><span>Пластик</span><b id="rPl">—</b></div>
+<div class="ln" id="lWaste"><span>Брак і підтримки</span><b id="rW">—</b></div>
+<div class="ln off" id="lEl"><span>Електроенергія</span><b id="rE">—</b></div>
+<div class="ln"><span>Собівартість</span><b id="rC">—</b></div>
+<div class="ln off" id="lMk"><span>Націнка</span><b id="rM">—</b></div>
+<div class="total"><span>Вартість виробу</span><span id="rT">0 ₴</span></div>
+</div>
+</div>
+<div class="btns">
+<button class="btn alt" id="copy" type="button">Копіювати розрахунок</button>
+<button class="btn" id="reset" type="button">Скинути</button>
+</div>
+</div>
+</section>
+
+<section class="mats" id="materials">
+<h2 class="st">ДОВІДКА ПО МАТЕРІАЛАХ</h2>
+<p class="ss">натисни на картку, щоб обрати матеріал у калькуляторі · температури орієнтовні</p>
+<div class="grid">
+<button class="card" data-m="PLA"><div class="tag">PLA</div><h3>Базовий</h3><p>Легко друкується, мінімум деформацій. Для прототипів і декору.</p><div class="meta">сопло 190–220 °C</div></button>
+<button class="card" data-m="ABS"><div class="tag">ABS</div><h3>Міцний</h3><p>Витримує нагрів і навантаження. Потребує закритої камери.</p><div class="meta">сопло 230–260 °C</div></button>
+<button class="card" data-m="PETG"><div class="tag">PETG</div><h3>Стійкий</h3><p>Баланс міцності й простоти друку. Не боїться вологи.</p><div class="meta">сопло 220–250 °C</div></button>
+<button class="card" data-m="TPU"><div class="tag">TPU</div><h3>Гнучкий</h3><p>Еластичний — для чохлів, прокладок і амортизуючих деталей.</p><div class="meta">сопло 210–230 °C</div></button>
+<button class="card" data-m="Nylon"><div class="tag">NYLON</div><h3>Інженерний</h3><p>Висока зносостійкість для функціональних механізмів. Боїться вологи.</p><div class="meta">сопло 240–270 °C</div></button>
+<button class="card" data-m="Resin"><div class="tag">RESIN</div><h3>Деталізований</h3><p>Фотополімер для мініатюр і ювелірних форм із високою точністю.</p><div class="meta">УФ-засвічення</div></button>
+</div>
+</section>
+</main>
+<footer>
+<div><span class="dot"></span>МОДУЛЬ: АКТИВНИЙ</div>
+<div>РОЗРАХУНКІВ ЗА СЕСІЮ: <span id="cnt">0</span></div>
+<div>ЦІНИ Й ВАГА — ОРІЄНТОВНІ</div>
+<div>© ХРОМ.ДРУК</div>
+</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const sel=$('material'),amount=$('amount'),price=$('price'),waste=$('waste'),markup=$('markup');
+const tog=$('elecToggle'),power=$('power'),hours=$('hours'),tariff=$('tariff');
+const modes=[...document.querySelectorAll('input[name=mode]')];
+const KEY='khromdruk-v1',IDS=['material','amount','price','waste','markup','power','hours','tariff'];
+const fmt=(n,d=2)=>n.toLocaleString('uk-UA',{minimumFractionDigits:d,maximumFractionDigits:d});
+const money=n=>fmt(n)+' ₴';
+const mode=()=>modes.find(r=>r.checked).value;
+let calcs=0,counted=false,last='';
+
+function save(){try{const s={mode:mode(),elec:tog.checked};IDS.forEach(i=>s[i]=$(i).value);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(!s)return;IDS.forEach(i=>{if(s[i]!=null)$(i).value=s[i]});tog.checked=!!s.elec;modes.forEach(r=>r.checked=r.value===s.mode)}catch(e){}}
+
+function syncMode(){
+  const o=sel.options[sel.selectedIndex],gonly=o.dataset.gonly==='1';
+  modes[0].disabled=gonly;
+  if(gonly)modes[1].checked=true;
+  const g=mode()==='g';
+  $('amountLab').textContent=g?'Вага виробу (г)':'Довжина нитки (м)';
+  amount.placeholder=g?'напр. 45':'напр. 15';
+  $('modeHint').textContent=gonly?'смола вимірюється вагою (або об\'ємом у слайсері)':'вага рахується для нитки Ø1.75 мм (слайсер показує обидва значення)';
+}
+function setMaterial(name,resetPrice){
+  sel.value=name;
+  if(resetPrice)price.value=sel.options[sel.selectedIndex].dataset.p;
+  syncMode();
+}
+function calc(){
+  syncMode();
+  const o=sel.options[sel.selectedIndex],val=parseFloat(amount.value),p=parseFloat(price.value);
+  const ok=val>0&&p>0;
+  $('empty').hidden=ok;$('out').hidden=!ok;
+  if(!ok){last='';return}
+  const g=mode()==='g',grams=g?val:val*parseFloat(o.dataset.g);
+  const pl=grams/1000*p,w=pl*(parseFloat(waste.value)||0)/100;
+  let e=0;
+  if(tog.checked)e=(parseFloat(power.value)||0)/1000*(parseFloat(hours.value)||0)*(parseFloat(tariff.value)||0);
+  const cost=pl+w+e,mk=cost*(parseFloat(markup.value)||0)/100,total=cost+mk;
+  $('rMat').textContent=o.value;
+  $('rG').textContent=(g?'':'≈ ')+fmt(grams,1)+' г'+(g?'':' ('+fmt(val)+' м)');
+  $('rPl').textContent=money(pl);
+  $('rW').textContent=money(w);
+  $('lWaste').classList.toggle('off',w===0);
+  $('rE').textContent=money(e);$('lEl').classList.toggle('off',!tog.checked);
+  $('rC').textContent=money(cost);
+  $('rM').textContent=money(mk);$('lMk').classList.toggle('off',mk===0);
+  $('rT').textContent=money(total);
+  last=['Розрахунок 3D-друку (ХРОМ.ДРУК)','Матеріал: '+o.value,'Вага: '+fmt(grams,1)+' г','Пластик: '+money(pl),w?'Брак: '+money(w):'',tog.checked?'Електроенергія: '+money(e):'',mk?'Націнка: '+money(mk):'','Разом: '+money(total)].filter(Boolean).join('\n');
+  if(!counted){counted=true}
+}
+let t;
+function onInput(){calc();save();clearTimeout(t);t=setTimeout(()=>{if(last){calcs++;$('cnt').textContent=calcs}},900)}
+
+sel.addEventListener('change',()=>{price.value=sel.options[sel.selectedIndex].dataset.p;onInput()});
+[amount,price,waste,markup,power,hours,tariff].forEach(el=>el.addEventListener('input',onInput));
+modes.forEach(r=>r.addEventListener('change',onInput));
+tog.addEventListener('change',()=>{$('elec').classList.toggle('open',tog.checked);onInput()});
+document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>{setMaterial(c.dataset.m,true);onInput();$('calc').scrollIntoView({behavior:'smooth'});amount.focus({preventScroll:true})}));
+$('copy').addEventListener('click',async()=>{
+  const b=$('copy');if(!last){b.textContent='Спершу введи дані';setTimeout(()=>b.textContent='Копіювати розрахунок',1500);return}
+  try{await navigator.clipboard.writeText(last);b.textContent='Скопійовано ✓'}catch(e){b.textContent='Не вдалося скопіювати'}
+  setTimeout(()=>b.textContent='Копіювати розрахунок',1500);
+});
+$('reset').addEventListener('click',()=>{
+  amount.value='';hours.value='';waste.value=10;markup.value=0;power.value=150;tariff.value=4.32;tog.checked=false;$('elec').classList.remove('open');
+  modes[0].checked=true;setMaterial(sel.value,true);onInput();
+});
+
+load();
+if(!price.value)price.value=sel.options[sel.selectedIndex].dataset.p;
+$('elec').classList.toggle('open',tog.checked);
+calc();
+</script>
+</body>
+</html>
